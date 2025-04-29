@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japan Earthquake Alerts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .earthquake {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .magnitude {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        #loading {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Japan Earthquake Alerts</h1>
+    <div id="loading">Loading...</div>
+    <div id="earthquakes"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Frontend loaded!"); // Debug line
+            
+            const earthquakesDiv = document.getElementById('earthquakes');
+            const loadingDiv = document.getElementById('loading');
+            
+            async function fetchEarthquakes() {
+                loadingDiv.style.display = 'block';
+                earthquakesDiv.innerHTML = '';
+                
+                try {
+                    const response = await fetch('/api/earthquakes');
+                    if (!response.ok) throw new Error('API error');
+                    const data = await response.json();
+                    
+                    if (data.length === 0) {
+                        earthquakesDiv.innerHTML = '<p>No recent earthquakes found</p>';
+                        return;
+                    }
+                    
+                    data.slice(0, 10).forEach(quake => {
+                        const quakeDiv = document.createElement('div');
+                        quakeDiv.className = 'earthquake';
+                        quakeDiv.innerHTML = `
+                            <h3>${quake.place}</h3>
+                            <p>Magnitude: <span class="magnitude">${quake.mag}</span></p>
+                            <p>Time: ${new Date(quake.time).toLocaleString()}</p>
+                            <p>Depth: ${quake.depth} km</p>
+                        `;
+                        earthquakesDiv.appendChild(quakeDiv);
+                    });
+                } catch (error) {
+                    console.error("Fetch error:", error);
+                    earthquakesDiv.innerHTML = '<p>Error loading earthquake data</p>';
+                } finally {
+                    loadingDiv.style.display = 'none';
+                }
+            }
+            
+            fetchEarthquakes();
+        });
+    </script>
+</body>
+</html>
